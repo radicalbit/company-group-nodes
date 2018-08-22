@@ -21,7 +21,7 @@
 
     path.link {
       fill: none;
-      stroke-width: 2px;
+      stroke-width: 1px;
     }
 
     text {
@@ -38,9 +38,17 @@
       font-family: 'Lato', sans-serif;
     }
 
+    header {
+      position: absolute;
+      bottom: 3em;
+      width: 100%;
+      height: auto;
+      padding: 0 1em;
+    }
+
     h1 {
-      font-size: 3em;
-      margin: 10px 0;
+      font-size: 2.5em;
+      margin: .5em 0;
       font-weight: normal;
       font-family: 'Raleway', sans-serif;
     }
@@ -49,8 +57,15 @@
     h3 {
       font-size: 1.5em;
       font-weight: lighter;
+      margin: 0;
     }
 
+  image{
+    background: -moz-radial-gradient(center, ellipse cover, rgba(239,239,239,1) 0%, rgba(255,255,255,0) 100%);
+    background: -webkit-radial-gradient(center, ellipse cover, rgba(239,239,239,1) 0%,rgba(255,255,255,0) 100%);
+    background: radial-gradient(ellipse at center, rgba(239,239,239,1) 0%,rgba(255,255,255,0) 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#efefef', endColorstr='#00ffffff',GradientType=1 );
+  }
 
     .bitrock {
       fill: #e37639;
@@ -62,14 +77,6 @@
 
     .radicalbit {
       fill: #72b2df;
-    }
-
-    header {
-      position: absolute;
-      bottom: 6em;
-      width: 100%;
-      height: auto;
-      padding: 0 1em;
     }
 
     @media (max-width:480px) {
@@ -92,8 +99,8 @@
 
 <body >
   <header>
-    <h1>Hei You!</h1>
-    <h2>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</h2>
+    <h1>Databiz group</h1>
+    <h2>Databiz description Suspendisse potenti. Maecenas dignissim lacus mi, non tempus lorem commodo quis.</h2>
     <p>And to give a deeper look.</p>
   </header>
   
@@ -124,7 +131,8 @@
         "img": "img/DatabizLogo.svg",
         "description": "Databiz description Suspendisse potenti. Maecenas dignissim lacus mi, non tempus lorem commodo quis. ",
         "class": "databiz",
-        "size": 5,
+        "width": "500",
+        "size": 500,
         "children": [
           { "name": "HR & Jobs", "size": 3000, "class": "databiz" },
           { "name": "Corporate Management", "size": 3000, "class": "databiz" },
@@ -134,7 +142,8 @@
             "img": "img/BitrockLogo.svg",
             "description": "Nam id posuere lacus, eu rutrum enim. Phasellus auctor, diam sed condimentum ullamcorper ",
             "class": "bitrock",
-            "size": 5,
+            "width": "300",
+            "size": 300,
             "children": [
               { "name": "Reliable innovation", "size": 3000, "class": "bitrock" },
               { "name": "Enterprise Solutions", "size": 3000, "class": "bitrock" },
@@ -146,7 +155,8 @@
             "img": "img/RadicalbitLogo.svg",
             "description": "Aenean pellentesque commodo dolor eu viverra. Aliquam sed ante et quam posuere placerat.",
             "class": "radicalbit",
-            "size": 5,
+            "width": "300",
+            "size": 300,
             "children": [
               { "name": "Fast Data", "size": 3000, "class": "radicalbit" },
               { "name": "Streaming Technologies", "size": 3000, "class": "radicalbit" },
@@ -156,7 +166,7 @@
         ]
       };
 
-      root.fixed = false;
+      root.fixed = true;
       root.x = w / 2;
       root.y = h / 2;
 
@@ -200,9 +210,9 @@
         .links(links)
         .gravity(0.05)
         .charge(-2000)
-        .linkDistance(300)
+        .linkDistance(h/2)
         .friction(0.5)
-        .linkStrength(function (l, i) { return 1; })
+        .linkStrength(function (l, i) { return .5; })
         .size([w, h])
         .on("tick", tick)
         .start();
@@ -236,17 +246,17 @@
         .attr("class", function (d) { return d.class; })
 
       nodeEnter.append("text")
-        .attr("dx", "1em")
-        .text(function (d) { return d.name; });
+        .attr("dx", ".5em")
+        .attr("dy", ".5em")
+        .text(function (d) { return d.name; })
+        .attr("class", function (d) { return d.class; })
 
-      // Append images
       var images = nodeEnter.append("svg:image")
         .attr("xlink:href", function (d) { return d.img; })
-        .attr("x", function (d) { return -25; })
-        .attr("y", function (d) { return -25; })
+        .attr("x", function (d) { return - d.width/2; })
+        .attr("y", function (d) { return -50; })
         .attr("height", 100)
         .attr("width", function (d) { return d.width; });
-      //.attr("width", 300);
 
       var setEvents = images
         .on('click', function (d) {
@@ -280,13 +290,6 @@
         node.attr("transform", function (d) { return "translate(" + d.x + "," + d.y + ")"; });
 
       }
-    }
-
-    function nodeTransform(d) {
-      d.x = Math.max(maxNodeSize, Math.min(w - (d.imgwidth / 2 || 16), d.x));
-      d.y = Math.max(maxNodeSize, Math.min(h - (d.imgheight / 2 || 16), d.y));
-      return "translate(" + d.x + "," + d.y + ")";
-      console.log(d)
     }
 
 
