@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Databiz Group Nodes</title>
+  <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+
+  <style>
+    @import url(https://fonts.googleapis.com/css?family=Lato:300,400,700,900|Raleway:100,200,400,500,600,700,800,900);
+
+    body {
+      background: #efefef;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+      font-family: 'Lato', sans-serif;
+      font-size: 16px;
+      color: #444;
+    }
+
+    path.link {
+      fill: none;
+      stroke-width: 2px;
+    }
+
+    text {
+      font-family: 'Lato', sans-serif;
+      font-size: 1em !important;
+      font-weight: lighter;
+      text-shadow: 0 1px 0 #efefef, 1px 0 0 #efefef, 0 -1px 0 #efefef, -1px 0 0 #efefef;
+    }
+
+    svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      font-family: 'Lato', sans-serif;
+    }
+
+    h1 {
+      font-size: 3em;
+      margin: 10px 0;
+      font-weight: normal;
+      font-family: 'Raleway', sans-serif;
+    }
+
+    h2,
+    h3 {
+      font-size: 1.5em;
+      font-weight: lighter;
+    }
+
+
+    .bitrock {
+      fill: #e37639;
+    }
+
+    .databiz {
+      fill: #889097;
+    }
+
+    .radicalbit {
+      fill: #72b2df;
+    }
+
+    header {
+      position: absolute;
+      bottom: 6em;
+      width: 100%;
+      height: auto;
+      padding: 0 1em;
+    }
+
+    @media (max-width:480px) {
+      body {
+        font-size: 24px;
+        background: red; /*to test mediaquery */
+      }
+      text {
+        font-size: 1.5em;
+      }
+      image {
+        width: 70%;
+        height: auto;
+      }
+    }
+  </style>
+
+</head>
+
+
+<body >
+  <header>
+    <h1>Hei You!</h1>
+    <h2>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</h2>
+    <p>And to give a deeper look.</p>
+  </header>
+  
+  <!-- container for force layout visualisation  -->
+  <section id="vis"></section>
+
+  <script>
+
+
+    // some colour variables
+    var tcBlack = "#ccc";
+
+    // rest of vars
+    var w = window.innerWidth,
+      h = window.innerHeight - 200,
+      maxNodeSize = 300,
+      root;
+
+    var vis;
+    var force = d3.layout.force();
+
+    vis = d3.select("#vis").append("svg").attr("width", w).attr("height", h);
+
+    d3.json("databizgroup.json", function (json) {
+
+      root = {
+        "name": "Databiz group",
+        "img": "img/DatabizLogo.svg",
+        "description": "Databiz description Suspendisse potenti. Maecenas dignissim lacus mi, non tempus lorem commodo quis. ",
+        "class": "databiz",
+        "size": 5,
+        "children": [
+          { "name": "HR & Jobs", "size": 3000, "class": "databiz" },
+          { "name": "Corporate Management", "size": 3000, "class": "databiz" },
+          { "name": "CSR", "size": 3000, "class": "databiz" },
+          {
+            "name": "Bitrock",
+            "img": "img/BitrockLogo.svg",
+            "description": "Nam id posuere lacus, eu rutrum enim. Phasellus auctor, diam sed condimentum ullamcorper ",
+            "class": "bitrock",
+            "size": 5,
+            "children": [
+              { "name": "Reliable innovation", "size": 3000, "class": "bitrock" },
+              { "name": "Enterprise Solutions", "size": 3000, "class": "bitrock" },
+              { "name": "DevOps", "size": 3000, "class": "bitrock" },
+            ]
+          },
+          {
+            "name": "RadicalBit",
+            "img": "img/RadicalbitLogo.svg",
+            "description": "Aenean pellentesque commodo dolor eu viverra. Aliquam sed ante et quam posuere placerat.",
+            "class": "radicalbit",
+            "size": 5,
+            "children": [
+              { "name": "Fast Data", "size": 3000, "class": "radicalbit" },
+              { "name": "Streaming Technologies", "size": 3000, "class": "radicalbit" },
+              { "name": "Machine Learning A.I.", "size": 3000, "class": "radicalbit" }
+            ]
+          }
+        ]
+      };
+
+      root.fixed = false;
+      root.x = w / 2;
+      root.y = h / 2;
+
+
+      // Build the path
+      var defs = vis.insert("svg:defs")
+        .data(["end"]);
+
+
+      defs.enter().append("svg:path")
+        .attr("d", "M0,-5L10,0L0,5");
+
+      update();
+    });
+
+
+    function collapse(d) {
+      if (d.children) {
+        d._children = d.children;
+        d._children.forEach(collapse);
+        d.children = null;
+      }
+    }
+
+    function collapseAll() {
+      collapse(root);
+      update();
+    }
+
+    update();
+    collapseAll();
+
+
+    function update() {
+      var nodes = flatten(root),
+        links = d3.layout.tree().links(nodes);
+
+      // Restart the force layout.
+      force
+        .nodes(nodes)
+        .links(links)
+        .gravity(0.05)
+        .charge(-2000)
+        .linkDistance(300)
+        .friction(0.5)
+        .linkStrength(function (l, i) { return 1; })
+        .size([w, h])
+        .on("tick", tick)
+        .start();
+
+      var path = vis.selectAll("path.link")
+        .data(links, function (d) { return d.target.id; });
+
+      path.enter().insert("svg:path")
+        .attr("class", "link")
+        .attr("marker-end", "url(#end)")
+        .style("stroke", "#ccc");
+
+      // Exit any old paths.
+      path.exit().remove();
+
+      // Update the nodes…
+      var node = vis.selectAll("g.node")
+        .data(nodes, function (d) { return d.id; });
+
+      // Enter any new nodes.
+      var nodeEnter = node.enter().append("svg:g")
+        .attr("class", "node")
+        .attr("transform", function (d) { return "translate(" + d.x + "," + d.y + ")"; })
+        .on("click", click)
+        .call(force.drag)
+        .text(function (d) { return d.name; });
+
+      // Append a circle
+      nodeEnter.append("svg:circle")
+        .attr("r", function (d) { return Math.sqrt(d.size) / 10 || 4.5; })
+        .attr("class", function (d) { return d.class; })
+
+      nodeEnter.append("text")
+        .attr("dx", "1em")
+        .text(function (d) { return d.name; });
+
+      // Append images
+      var images = nodeEnter.append("svg:image")
+        .attr("xlink:href", function (d) { return d.img; })
+        .attr("x", function (d) { return -25; })
+        .attr("y", function (d) { return -25; })
+        .attr("height", 100)
+        .attr("width", function (d) { return d.width; });
+      //.attr("width", 300);
+
+      var setEvents = images
+        .on('click', function (d) {
+          d3.select("h1").html(d.name);
+          d3.select("h2").html(d.description);
+          d3.select("h3").html("Take me to " + "<a href='" + d.link + "' >" + d.name + " web page ⇢" + "</a>");
+        })
+
+      // Exit any old nodes.
+      node.exit().remove();
+
+
+      // Re-select for update.
+      path = vis.selectAll("path.link");
+      node = vis.selectAll("g.node");
+
+      function tick() {
+        path.attr("d", function (d) {
+
+          var dx = d.target.x - d.source.x,
+            dy = d.target.y - d.source.y,
+            dr = Math.sqrt(dx * dx + dy * dy);
+          return "M" + d.source.x + ","
+            + d.source.y
+            + "A" + dr + ","
+            + dr + " 0 0,1 "
+            + d.target.x + ","
+            + d.target.y;
+        });
+
+        node.attr("transform", function (d) { return "translate(" + d.x + "," + d.y + ")"; });
+
+      }
+    }
+
+    function nodeTransform(d) {
+      d.x = Math.max(maxNodeSize, Math.min(w - (d.imgwidth / 2 || 16), d.x));
+      d.y = Math.max(maxNodeSize, Math.min(h - (d.imgheight / 2 || 16), d.y));
+      return "translate(" + d.x + "," + d.y + ")";
+      console.log(d)
+    }
+
+
+    // Toggle children on click.
+    function click(d) {
+      if (d3.event.defaultPrevented) return; // ignore drag
+      if (d.children) {
+        d._children = d.children;
+        d.children = null;
+      } else {
+        d.children = d._children;
+        d._children = null;
+      }
+      update();
+    }
+
+    // Returns a list of all nodes under the root.
+    function flatten(root) {
+      var nodes = [], i = 0;
+
+      function recurse(node) {
+        if (node.children) node.children.forEach(recurse);
+        if (!node.id) node.id = ++i;
+        nodes.push(node);
+      }
+
+      recurse(root);
+      return nodes;
+    }
+
+
+
+  </script>
+
+</body>
+
+</html>
