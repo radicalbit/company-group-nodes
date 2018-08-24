@@ -248,7 +248,7 @@
       nodeEnter.append("text")
         .attr("dx", ".5em")
         .attr("dy", ".5em")
-        .text(function (d) { return d.name; })
+        .text(function (d) { return d.img ? '' : d.name;  })
         .attr("class", function (d) { return d.class; })
 
       var images = nodeEnter.append("svg:image")
